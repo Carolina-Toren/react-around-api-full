@@ -1,0 +1,25 @@
+{
+	"name": "react-around-api-full",
+	"version": "1.0.0",
+	"description": "The API of \"Around the U.S.\" with authorization and registration handled by the back-end server.",
+	"main": "index.js",
+	"scripts": {
+		"test": "jest"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Carolina-Toren/react-around-api-full.git"
+	},
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/Carolina-Toren/react-around-api-full/issues"
+	},
+	"homepage": "https://github.com/Carolina-Toren/react-around-api-full#readme",
+	"dependencies": {
+		"npm-install": "^1.8.17"
+	},
+	"devDependencies": {
+		"jest": "^28.1.2"
+	}
+}

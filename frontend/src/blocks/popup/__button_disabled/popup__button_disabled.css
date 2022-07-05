@@ -1,0 +1,9 @@
+.popup__button_disabled {
+  background-image: url(../../../images/button/save_disabled.svg);
+  pointer-events: none;
+  color: #000000;
+  opacity: 0.2;
+  border: 1px solid #000000;
+  box-sizing: border-box;
+  border-radius: 2px;
+}

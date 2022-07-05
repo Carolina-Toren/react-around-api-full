@@ -1,0 +1,13 @@
+.login__btn {
+	height: 50px;
+	width: 358px;
+	border: 1px;
+	border-radius: 2px;
+	background-color: #ffffff;
+	color: #000000;
+	font-family: 'Inter';
+	font-style: normal;
+	font-weight: 400;
+	font-size: 18px;
+	line-height: 22px;
+}

@@ -1,0 +1,26 @@
+.profile__img-button {
+  width: 120px;
+  height: 120px;
+  background-color: transparent;
+  position: absolute;
+  background-image: url("../../../images/button/edit_profile_img_button.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s linear;
+  cursor: pointer;
+  border-style: none;
+  padding: 0;
+}
+
+.profile__img-button:hover {
+  opacity: 1;
+}
+@media screen and (max-width: 715px) {
+  .profile__img-button {
+    margin: 0;
+    width: 168px;
+    height: 168px;
+  }
+}

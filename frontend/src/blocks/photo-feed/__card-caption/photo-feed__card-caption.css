@@ -1,0 +1,6 @@
+.photo-feed__card-caption {
+  max-width: 288px;
+  display: flex;
+  justify-content: space-between;
+  margin: 24px 15px 25px 21px;
+}

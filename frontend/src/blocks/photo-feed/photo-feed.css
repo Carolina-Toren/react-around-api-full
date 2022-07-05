@@ -1,0 +1,10 @@
+.photo-feed {
+  max-width: 880px;
+  margin: 46px auto 0;
+}
+
+@media screen and (max-width: 610px) {
+  .photo-feed {
+    max-width: 282px;
+  }
+}

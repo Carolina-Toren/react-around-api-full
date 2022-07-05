@@ -1,0 +1,12 @@
+.page__container {
+  margin: 45px auto 60px;
+  max-width: 1280px;
+  font-family: "Inter", sans-serif;
+  position: relative;
+}
+
+@media screen and (max-width: 880px) {
+  .page__container {
+    margin: 28px auto 36px;
+  }
+}

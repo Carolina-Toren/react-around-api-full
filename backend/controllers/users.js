@@ -35,7 +35,7 @@ const getUserById = (req, res) => {
 
 const createUser = (req, res) => {
   User.create(req.body)
-    .orFail(createNotFoundError)
+
     .then(() => res.status(200).send('User created'))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -52,10 +52,14 @@ const updatedUserProfile = (req, res) => {
   User.findByIdAndUpdate(
     id,
     { name, about },
-    { new: true, runValidators: true },
+    { new: true, runValidators: true }
   )
     .orFail(createNotFoundError)
-    .then((updatedUser) => res.status(200).send({ message: `User ${updatedUser.id} was updated successfully` }))
+    .then((updatedUser) =>
+      res
+        .status(200)
+        .send({ message: `User ${updatedUser.id} was updated successfully` })
+    )
 
     .catch((err) => {
       if (err.name === 'Not Found') {
@@ -70,11 +74,7 @@ const updatedUserProfile = (req, res) => {
 const updatedUserAvatar = (req, res) => {
   const id = req.user._id;
   const { avatar } = req.body;
-  User.findByIdAndUpdate(
-    id,
-    { avatar },
-    { new: true, runValidators: true },
-  )
+  User.findByIdAndUpdate(id, { avatar }, { new: true, runValidators: true })
     .orFail(createNotFoundError)
     .then(() => {
       res.status(200).send({ message: 'Avatar updated successfully' });

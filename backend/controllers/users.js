@@ -1,52 +1,74 @@
 const User = require('../models/user');
-const { createNotFoundError } = require('../canstans/constants');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const BadRequestError = require('../errors/badRequestError');
+const UnauthorizedError = require('../errors/unauthorizedError');
+const NotFoundError = require('../errors/notFoundError');
+const UserExistsError = require('../errors/userExistsError');
 
-const getAllUsers = (req, res) => {
+require('dotenv').config();
+
+const getAllUsers = (req, res, next) => {
   User.find({})
-    .orFail(createNotFoundError)
     .then((users) => {
-      res.send(users);
+      if (!users) {
+        throw new NotFoundError('No users to display');
+      }
+      res.status(200).send(users);
+    })
+    .catch(next);
+};
+
+const getUserById = (req, res, next) => {
+  User.findById(req.user._id)
+    .then((user) => {
+      res.status(200).send(user);
     })
     .catch((err) => {
-      if (err.name === 'Not Found') {
-        res.status(404).send({ message: `${err.message}` });
-        return;
-      }
-
-      res.status(500).send({ message: `${err.message}` });
-    });
-};
-
-const getUserById = (req, res) => {
-  User.findById(req.params.id)
-    .orFail(createNotFoundError)
-    .then((user) => res.status(200).send(user))
-    .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: `${err.message}` });
-        return;
+        throw new BadRequestError('Bad request.');
       }
       if (err.name === 'Not Found') {
-        res.status(404).send({ message: `${err.message}` });
+        throw new NotFoundError('No user with matching id found');
       }
-      res.status(500).send({ message: `${err.message}` });
-    });
+      next(err);
+    })
+    .catch(next);
 };
 
-const createUser = (req, res) => {
-  User.create(req.body)
-
-    .then(() => res.status(200).send('User created'))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ messege: `${err.message}` });
-        return;
+const createUser = (req, res, next) => {
+  const { name, about, avatar, email, password } = req.body;
+  User.findOne({ email })
+    .then((emailExists) => {
+      if (emailExists) {
+        throw new UserExistsError('User is already exists');
+      } else {
+        bcrypt
+          .hash(password, 10)
+          .then((hash) =>
+            User.create({
+              name,
+              about,
+              avatar,
+              email,
+              password: hash,
+            })
+          )
+          .then((user) => {
+            res.status(201).send(user);
+          })
+          .catch((err) => {
+            if (err.name === 'ValidationError') {
+              throw new BadRequestError('Validation failed.');
+            }
+          });
+        next(err);
       }
-      res.status(500).send({ message: `${err.message}` });
-    });
+    })
+    .catch(next);
 };
 
-const updatedUserProfile = (req, res) => {
+const updatedUserProfile = (req, res, next) => {
   const id = req.user._id;
   const { name, about } = req.body;
   User.findByIdAndUpdate(
@@ -54,40 +76,63 @@ const updatedUserProfile = (req, res) => {
     { name, about },
     { new: true, runValidators: true }
   )
-    .orFail(createNotFoundError)
-    .then((updatedUser) =>
-      res
-        .status(200)
-        .send({ message: `User ${updatedUser.id} was updated successfully` })
-    )
-
-    .catch((err) => {
-      if (err.name === 'Not Found') {
-        res.status(404).send({ message: `${err.message}` });
-        return;
+    .then((updatedUser) => {
+      if (!updatedUser) {
+        throw new NotFoundError('No user with matching id found');
       }
-
-      res.status(500).send({ message: `${err.message}` });
-    });
+      res.status(200).send(updatedUser);
+    })
+    .catch(next);
 };
 
-const updatedUserAvatar = (req, res) => {
+const updatedUserAvatar = (req, res, next) => {
   const id = req.user._id;
   const { avatar } = req.body;
   User.findByIdAndUpdate(id, { avatar }, { new: true, runValidators: true })
-    .orFail(createNotFoundError)
-    .then(() => {
-      res.status(200).send({ message: 'Avatar updated successfully' });
+    .then((avatar) => {
+      if (!avatar) {
+        throw new NotFoundError('User not found');
+      }
+      res.status(200).send(avatar);
+    })
+
+    .catch(next);
+};
+
+const login = (req, res, next) => {
+  const { email, password } = req.body;
+  User.findUserByCredentials(email, password, {
+    new: true,
+    runValidators: true,
+  })
+    .then((user) => {
+      if (!user) {
+        throw new BadRequestError('Bad request');
+      }
+      const { NODE_ENV, JWT_SECRET } = process.env;
+      const token = jwt.sign(
+        { _id: user._id },
+        NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
+        { expiresIn: '7d' }
+      );
+      res.status(200).send({
+        token,
+        user: {
+          name: user.name,
+          about: user.about,
+          avatar: user.avatar,
+          email: user.email,
+        },
+      });
     })
 
     .catch((err) => {
-      if (err.name === 'Not Found') {
-        res.status(404).send({ message: `${err.message}` });
-        return;
+      if (err.name === 'Error') {
+        throw new UnauthorizedError('Incorrect email or password');
       }
-
-      res.status(500).send({ message: `${err.message}` });
-    });
+      next(err);
+    })
+    .catch(next);
 };
 
 module.exports = {
@@ -96,4 +141,5 @@ module.exports = {
   createUser,
   updatedUserProfile,
   updatedUserAvatar,
+  login,
 };

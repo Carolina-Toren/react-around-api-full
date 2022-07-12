@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+const { default: isURL } = require('validator/lib/isURL');
 const cardSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -12,7 +12,7 @@ const cardSchema = new mongoose.Schema({
     required: true,
     validator(v) {
       // eslint-disable-next-line no-useless-escape
-      return /(http:\/\/|https:\/\/)[www\.]?[a-zA-z0-9.]+\/?#?/i.test(v);
+      return isURL(v);
     },
     message: (props) => `${props.value} is not a valid link!`,
   },

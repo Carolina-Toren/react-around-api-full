@@ -1,102 +1,103 @@
 const Card = require('../models/card');
 const { createNotFoundError } = require('../canstans/constants');
+const NotFoundError = require('../errors/notFoundError');
 
-const getAllCards = (req, res) => {
+const getAllCards = (req, res, next) => {
   Card.find({})
-    .orFail(createNotFoundError)
     .then((cardsData) => {
+      if (!cardsData) {
+        throw new NotFoundError('No cards to display');
+      }
       res.status(200).send(cardsData);
     })
-
-    .catch((err) => {
-      if (err.name === 'Not Found') {
-        res.status(404).send({ message: `${err.message}` });
-        return;
-      }
-      res.status(500).send({ message: `${err.message}` });
-    });
+    .catch(next);
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const { name, link, owner = req.user._id } = req.body;
   Card.create({ name, link, owner })
 
-    .then(() => {
-      res.status(200).send('Card created successfully');
+    .then((newCard) => {
+      if (!newCard) {
+        throw new BadRequestError('Bad request');
+      }
+      res.status(200).send(newCard);
     })
 
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ messege: `${err.message}` });
-        return;
-      }
-      res.status(500).send({ messege: `${err.message}` });
-    });
+    .catch(next);
 };
 
-const deleteCard = (req, res) => {
+const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
-  Card.deleteOne({ _id: cardId })
-    .orFail(createNotFoundError)
-    .then(() => {
-      res.status(200).send('card has been deleted successfully');
-    })
+  Card.findById({ _id: cardId })
+    .then((card) => {
+      if (!card) {
+        throw new NotFoundError('No card mathing id found');
+      }
 
+      if (!card.owner._id.equals(req.user._id)) {
+        throw new Error('Access to the requested resource is forbidden');
+      }
+      Card.deleteOne({ _id: cardId }).then(() => {
+        res.status(200).json('card has been deleted successfully');
+      });
+    })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: `${err.message}` });
+      if (err.name === 'Error') {
+        res.status(403).send({ message: `${err.message}` });
         return;
       }
-      if (err.name === 'Not Found') {
-        res.status(404).send({ message: `${err.message}` });
+      if (err.name === 'CastError') {
+        throw new BadRequestError('Bad request');
       }
-      res.status(500).send({ message: `${err.message}` });
-    });
+      next(err);
+    })
+    .catch(next);
 };
 
-const dislikeCard = (req, res) => {
+const dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
-    { new: true },
+    { new: true }
   )
-    .orFail(createNotFoundError)
 
     .then((card) => {
+      if (!card) {
+        throw new NotFoundError('No card with matching id found');
+      }
       res.status(200).send(card);
     })
 
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: `${err.message}` });
-      } if (err.name === 'DocumentNotFoundError') {
-        res.status(404).send({ message: `${err.message}` });
-      } else {
-        res.status(500).send({ message: `${err.message}` });
+        throw new BadRequestError('Bad request');
       }
-    });
+      next(err);
+    })
+    .catch(next);
 };
 
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
-    { new: true },
+    { new: true }
   )
-    .orFail(createNotFoundError)
     .then((card) => {
+      if (!card) {
+        throw new NotFoundError('No card with matching id found');
+      }
       res.status(200).send(card);
     })
 
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: `${err.message}` });
-      } if (err.name === 'DocumentNotFoundError') {
-        res.status(404).send({ message: `${err.message}` });
-      } else {
-        res.status(500).send({ message: `${err.message}` });
+        throw new BadRequestError('Bad request');
       }
-    });
+      next(err);
+    })
+    .catch(next);
 };
 
 module.exports = {

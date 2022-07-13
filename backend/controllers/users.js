@@ -62,7 +62,6 @@ const createUser = (req, res, next) => {
               throw new BadRequestError('Validation failed.');
             }
           });
-        next(err);
       }
     })
     .catch(next);

@@ -15,9 +15,6 @@ const { errorHandler } = require('./middlewares/errorHandler');
 const app = express();
 const { PORT = 3000 } = process.env;
 
-app.use(cors());
-app.options('*', cors());
-
 const router = require('./routes/index');
 
 mongoose.connect('mongodb://localhost:27017/aroundb');
@@ -25,7 +22,8 @@ mongoose.connect('mongodb://localhost:27017/aroundb');
 app.use(helmet());
 
 app.use(bodyParser.json());
-
+app.use(cors());
+app.options('*', cors());
 app.use(requestLogger);
 
 app.use('/', router);

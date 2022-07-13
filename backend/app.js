@@ -12,6 +12,9 @@ const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const { errorHandler } = require('./middlewares/errorHandler');
 
+require('dotenv').config();
+
+console.log(process.env.NODE_ENV); // production
 const app = express();
 const { PORT = 3000 } = process.env;
 
@@ -25,6 +28,12 @@ app.use(bodyParser.json());
 app.use(cors());
 app.options('*', cors());
 app.use(requestLogger);
+
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Server will crash now');
+  }, 0);
+});
 
 app.use('/', router);
 app.use(errorLogger);

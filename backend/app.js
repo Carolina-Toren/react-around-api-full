@@ -2,19 +2,20 @@ const express = require('express');
 
 const bodyParser = require('body-parser');
 
+const NotFoundError = require('./errors/notFoundError');
+
 const helmet = require('helmet');
 
 const mongoose = require('mongoose');
+
+const { celebrate, Joi, errors, isCelebrateError } = require('celebrate');
 
 const cors = require('cors');
 
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 
-const { errorHandler } = require('./middlewares/errorHandler');
-
 require('dotenv').config();
 
-console.log(process.env.NODE_ENV); // production
 const app = express();
 const { PORT = 3000 } = process.env;
 
@@ -38,12 +39,21 @@ app.get('/crash-test', () => {
 app.use('/', router);
 app.use(errorLogger);
 
-app.use(errorHandler);
+app.use(errors());
 
 app.get('*', (req, res) => {
-  res.status(404).send({ message: 'Requested resource not found' });
+  throw new NotFoundError('OOPS! page not found');
+});
+
+app.use((err, req, res, next) => {
+  res.status(err.statusCode).send({
+    message:
+      err.statusCode === 500 ? 'An error occurred on the server' : err.message,
+  });
+  next();
 });
 
 app.listen(PORT, () => {
+  // eslint-disable-next-line no-console
   console.log(`App listening at port ${PORT}`);
 });

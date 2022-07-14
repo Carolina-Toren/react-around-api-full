@@ -1,7 +1,6 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const BadRequestError = require('../errors/badRequestError');
 const UnauthorizedError = require('../errors/unauthorizedError');
 const NotFoundError = require('../errors/notFoundError');
 const UserExistsError = require('../errors/userExistsError');
@@ -20,19 +19,14 @@ const getAllUsers = (req, res, next) => {
 };
 
 const getUserById = (req, res, next) => {
-  User.findById(req.user._id)
+  User.findById(req.params.id)
     .then((user) => {
-      res.status(200).send(user);
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        throw new BadRequestError('Bad request.');
-      }
-      if (err.name === 'Not Found') {
+      if (!user) {
         throw new NotFoundError('No user with matching id found');
       }
-      next(err);
+      res.status(200).send(user);
     })
+
     .catch(next);
 };
 
@@ -55,12 +49,13 @@ const createUser = (req, res, next) => {
             })
           )
           .then((user) => {
-            res.status(201).send(user);
-          })
-          .catch((err) => {
-            if (err.name === 'ValidationError') {
-              throw new BadRequestError('Validation failed.');
-            }
+            res.status(201).send({
+              _id: user._id,
+              email: user.email,
+              name: user.name,
+              about: user.about,
+              avatar: user.avatar,
+            });
           });
       }
     })
@@ -94,7 +89,6 @@ const updatedUserAvatar = (req, res, next) => {
       }
       res.status(200).send(avatar);
     })
-
     .catch(next);
 };
 
@@ -105,9 +99,6 @@ const login = (req, res, next) => {
     runValidators: true,
   })
     .then((user) => {
-      if (!user) {
-        throw new BadRequestError('Bad request');
-      }
       const { NODE_ENV, JWT_SECRET } = process.env;
       const token = jwt.sign(
         { _id: user._id },
@@ -124,7 +115,6 @@ const login = (req, res, next) => {
         },
       });
     })
-
     .catch((err) => {
       if (err.name === 'Error') {
         throw new UnauthorizedError('Incorrect email or password');

@@ -1,6 +1,8 @@
 const Card = require('../models/card');
 const { createNotFoundError } = require('../canstans/constants');
 const NotFoundError = require('../errors/notFoundError');
+const ForbiddentError = require('../errors/ForbiddentError');
+const BadRequestError = require('../errors/badRequestError');
 
 const getAllCards = (req, res, next) => {
   Card.find({})
@@ -31,10 +33,6 @@ const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   Card.findById({ _id: cardId })
     .then((card) => {
-      if (!card) {
-        throw new NotFoundError('No card mathing id found');
-      }
-
       if (!card.owner._id.equals(req.user._id)) {
         throw new Error('Access to the requested resource is forbidden');
       }
@@ -44,10 +42,8 @@ const deleteCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'Error') {
-        res.status(403).send({ message: `${err.message}` });
-        return;
-      }
-      if (err.name === 'CastError') {
+        throw new NotFoundError('No card matching id found');
+      } else if (err.name === 'CastError') {
         throw new BadRequestError('Bad request');
       }
       next(err);
@@ -61,7 +57,6 @@ const dislikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true }
   )
-
     .then((card) => {
       if (!card) {
         throw new NotFoundError('No card with matching id found');

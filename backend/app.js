@@ -2,17 +2,17 @@ const express = require('express');
 
 const bodyParser = require('body-parser');
 
-const NotFoundError = require('./errors/notFoundError');
+const cors = require('cors');
 
 const helmet = require('helmet');
 
 const mongoose = require('mongoose');
 
-const { celebrate, Joi, errors, isCelebrateError } = require('celebrate');
-
-const cors = require('cors');
+const { errors } = require('celebrate');
 
 const { requestLogger, errorLogger } = require('./middlewares/logger');
+
+const NotFoundError = require('./errors/notFoundError');
 
 require('dotenv').config();
 
@@ -41,7 +41,7 @@ app.use(errorLogger);
 
 app.use(errors());
 
-app.get('*', (req, res) => {
+app.get('*', () => {
   throw new NotFoundError('OOPS! page not found');
 });
 

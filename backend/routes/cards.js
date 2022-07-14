@@ -11,7 +11,7 @@ const {
   likeCard,
 } = require('../controllers/cards');
 
-router.get('/', getAllCards); //~~~~~
+router.get('/', getAllCards);
 
 router.post(
   '/',
@@ -21,7 +21,7 @@ router.post(
       link: Joi.string().required().custom(validateURL),
     }),
   }),
-  createCard
+  createCard,
 );
 
 router.delete(
@@ -33,7 +33,7 @@ router.delete(
         cardId: Joi.string().hex().length(24),
       })
       .unknown(true),
-  })
+  }),
 );
 
 router.put(
@@ -43,7 +43,7 @@ router.put(
       cardId: Joi.string().hex().length(24),
     }),
   }),
-  likeCard
+  likeCard,
 );
 
 router.delete(
@@ -53,7 +53,7 @@ router.delete(
       cardId: Joi.string().hex().length(24),
     }),
   }),
-  dislikeCard
+  dislikeCard,
 );
 
 module.exports = router;

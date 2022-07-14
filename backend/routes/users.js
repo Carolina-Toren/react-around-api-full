@@ -21,10 +21,12 @@ router.get(
   '/:id',
   celebrate({
     params: Joi.object().keys({
-      id: Joi.string().required().hex().length(24).hex(),
+      id:
+      Joi.string().required()
+        .hex().length(24),
     }),
   }),
-  getUserById
+  getUserById,
 );
 
 router.patch(
@@ -37,7 +39,7 @@ router.patch(
     }),
   }),
   updatedUserProfile,
-  auth
+  auth,
 );
 
 router.get('/me', getUserById);
@@ -49,7 +51,7 @@ router.patch(
       avatar: Joi.string().custom(validateURL),
     }),
   }),
-  updatedUserAvatar
+  updatedUserAvatar,
 );
 
 module.exports = router;

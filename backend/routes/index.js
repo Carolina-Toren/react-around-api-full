@@ -1,9 +1,8 @@
 const router = require('express').Router();
+const { celebrate, Joi } = require('celebrate');
 const userRouter = require('./users');
 const cardsRouter = require('./cards');
 const auth = require('../middlewares/auth');
-const { celebrate, Joi } = require('celebrate');
-
 const { createUser, login } = require('../controllers/users');
 
 router.post(
@@ -14,7 +13,7 @@ router.post(
       password: Joi.string().required().min(8),
     }),
   }),
-  createUser
+  createUser,
 );
 
 router.post(
@@ -26,7 +25,7 @@ router.post(
       password: Joi.string().required().min(8),
     }),
   }),
-  login
+  login,
 );
 
 router.use(auth);

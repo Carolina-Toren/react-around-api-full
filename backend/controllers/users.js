@@ -1,6 +1,7 @@
-const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const User = require('../models/user');
+
 const UnauthorizedError = require('../errors/unauthorizedError');
 const NotFoundError = require('../errors/notFoundError');
 const UserExistsError = require('../errors/userExistsError');
@@ -31,23 +32,25 @@ const getUserById = (req, res, next) => {
 };
 
 const createUser = (req, res, next) => {
-  const { name, about, avatar, email, password } = req.body;
-  User.findOne({ email })
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+  User.findOne({
+    email,
+  })
     .then((emailExists) => {
       if (emailExists) {
         throw new UserExistsError('User is already exists');
       } else {
         bcrypt
           .hash(password, 10)
-          .then((hash) =>
-            User.create({
-              name,
-              about,
-              avatar,
-              email,
-              password: hash,
-            })
-          )
+          .then((hash) => User.create({
+            name,
+            about,
+            avatar,
+            email,
+            password: hash,
+          }))
           .then((user) => {
             res.status(201).send({
               _id: user._id,
@@ -68,7 +71,7 @@ const updatedUserProfile = (req, res, next) => {
   User.findByIdAndUpdate(
     id,
     { name, about },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true },
   )
     .then((updatedUser) => {
       if (!updatedUser) {
@@ -83,11 +86,11 @@ const updatedUserAvatar = (req, res, next) => {
   const id = req.user._id;
   const { avatar } = req.body;
   User.findByIdAndUpdate(id, { avatar }, { new: true, runValidators: true })
-    .then((avatar) => {
-      if (!avatar) {
+    .then((user) => {
+      if (!user) {
         throw new NotFoundError('User not found');
       }
-      res.status(200).send(avatar);
+      res.status(200).send(user.avatar);
     })
     .catch(next);
 };
@@ -103,7 +106,7 @@ const login = (req, res, next) => {
       const token = jwt.sign(
         { _id: user._id },
         NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
-        { expiresIn: '7d' }
+        { expiresIn: '7d' },
       );
       res.status(200).send({
         token,

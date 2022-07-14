@@ -1,7 +1,5 @@
 const Card = require('../models/card');
-const { createNotFoundError } = require('../canstans/constants');
 const NotFoundError = require('../errors/notFoundError');
-const ForbiddentError = require('../errors/ForbiddentError');
 const BadRequestError = require('../errors/badRequestError');
 
 const getAllCards = (req, res, next) => {
@@ -55,7 +53,7 @@ const dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
-    { new: true }
+    { new: true },
   )
     .then((card) => {
       if (!card) {
@@ -77,7 +75,7 @@ const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
-    { new: true }
+    { new: true },
   )
     .then((card) => {
       if (!card) {
